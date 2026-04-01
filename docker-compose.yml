@@ -1,0 +1,21 @@
+services:
+  # This is YOUR container
+  rankpilot-ai:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: rankpilot_python_engine
+    volumes:
+      # THE BRIDGE: 
+      # Ask the Server Manager to point the left side to the Laravel storage
+      - ${LARAVEL_STORAGE_PATH:-./storage/app/public}:/app/shared_data:ro
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PYTHONUNBUFFERED=1
+    networks:
+      - rankpilot_network
+    restart: always
+
+networks:
+  rankpilot_network:
+    external: true  # This allows you to join the Laravel network

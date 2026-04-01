@@ -1,0 +1,19 @@
+# --- Core Framework ---
+langgraph
+langchain
+langchain-google-genai
+langchain_openai
+
+# --- API & Web Server ---
+fastapi
+uvicorn[standard]
+python-multipart
+
+# --- Data & PDF Processing ---
+pymupdf
+pydantic
+python-docx
+
+# --- Utilities ---
+python-dotenv
+httpx
