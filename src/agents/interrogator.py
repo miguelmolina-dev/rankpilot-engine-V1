@@ -7,9 +7,8 @@ def interrogator_node(state: RankPilotState):
     # Use .get() to avoid KeyError if Laravel sends a different structure
     new_ans = state.get("new_answer", {})
     history = state.get("history", [])
-    
-    current_val = state.get("current_step", 0)
-    print(f"Current Step before increment: {current_val}")
+
+    print(f"Current Step before increment: {state.get('current_step', 0)}")
 
     if new_ans:
         q_text = new_ans.get('question_text', 'Unknown Question')
@@ -17,13 +16,13 @@ def interrogator_node(state: RankPilotState):
         history.append(f"Q_Text: {q_text} | Answer: {answer}")
 
     # 2. Check for Completion (Transition to Snapshot)
-    if state.get("current_step", 0) >= 6:
+    if state.get("current_step", 0) >= 3:
         print("--- [NODE] Interrogation Complete. Moving to Snapshot Generation ---")
         return {
             "submission_id": state.get("submission_id"),
             "status": "completed", # Ensure your router recognizes 'completed'
             "current_step": state.get("current_step", 0) + 1,
-            "next_node": "generate_snapshot", # This MUST match the name in workflow.add_node
+            "next_node": "generate_snapshot", 
             "history": history
         }
 
@@ -46,9 +45,7 @@ def interrogator_node(state: RankPilotState):
     return {
         "submission_id": state.get("submission_id"),
         "status": "continue",
-        
-        # This is the key that LangGraph will look for in RankPilotState
-        "current_step": current_val,         
+        "current_step": state.get("current_step", 0) + 1,
         "history": history,
         "new_answer": {
             "question_text": response.text,

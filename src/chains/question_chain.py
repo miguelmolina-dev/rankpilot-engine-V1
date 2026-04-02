@@ -21,7 +21,6 @@ question_prompt = ChatPromptTemplate.from_template(
     CONTEXT:
     - Current Gaps: {gaps}
     - History: {history}
-    - Progress: Step {current_step} of 6
     - last user answer: {last_answer}
     
     INSTRUCTIONS:

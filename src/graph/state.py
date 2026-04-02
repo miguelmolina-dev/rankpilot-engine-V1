@@ -41,7 +41,7 @@ class RankPilotState(TypedDict):
     # --- Interrogation History ---
     new_answer: Optional[NewAnswer]
     history: List[str] 
-    current_step: Annotated[int, add]
+    current_step: int
 
     gaps: Optional[List[str]]  # This can be a simple string for now, or a more complex structure later
     
