@@ -2,8 +2,6 @@ from typing import Annotated, TypedDict, List, Dict, Optional
 from langgraph.graph.message import add_messages
 from operator import add
 
-print("State module loaded successfully.")
-
 # Matches CorePositioning in snapshot_chain.py
 class PositioningCore(TypedDict):
     practice_model: str  
