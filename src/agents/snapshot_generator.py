@@ -7,14 +7,17 @@ def snapshot_generator_node(state: RankPilotState):
     print("--- [NODE] Generating Final Snapshot ---")
     
     try:
-        # ... invoke logic remains the same ...
-        result = snapshot_chain.invoke({
+
+        input_data = {
             "raw_text": state.get("raw_text", ""),
             "history": state.get("history", []),
-            "practice_model": state.get("positioning_core", {}).get("practice_model", "Unknown Model"),
-            "submission_id": state.get("submission_id", "Default-ID"),
+            "practice_area": state.get("metadata", {}).get("practice_area", "General Law"),
             "gaps": state.get("gaps", "No specific gaps identified yet.")
-        })
+        }
+
+        # ... invoke logic remains the same ...
+        # 2. Invoke the Auditor Chain (Low temperature for accuracy)
+        result = snapshot_chain.invoke(input_data)
         
         # Flatten the result so it matches your RankPilotState keys
         return {
@@ -22,8 +25,6 @@ def snapshot_generator_node(state: RankPilotState):
             "positioning_tier": result.positioning_tier.model_dump(),
             "blind_spots": [bs.model_dump() for bs in result.blind_spots],
             "competitive_advantage": result.competitive_advantage,
-            "evolution_path": [ep.model_dump() for ep in result.evolution_path],
-            "final_report": result.model_dump(), # Keep this for Laravel if needed
             "status": "completed",
             "next_node": "end" # Update this to tell the test the flow finished
         }

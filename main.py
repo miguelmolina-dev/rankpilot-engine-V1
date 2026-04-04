@@ -8,9 +8,9 @@ app = FastAPI(title="RankPilot Engine")
 async def process_submission(state: RankPilotState):
     """
     The main endpoint for Laravel. 
-    Receives the current state, runs one 'turn' of the graph, and returns the update. [cite: 5, 6]
+    Receives the current state, runs one 'turn' of the graph, and returns the update. 
     """
     # LangGraph will start from the 'next_node' specified in the state 
-    # and run until it hits a breakpoint or a node that returns a state update. [cite: 50, 53]
+    # and run until it hits a breakpoint or a node that returns a state update.
     result = app_workflow.invoke(state)
     return result

@@ -3,34 +3,42 @@ from src.graph.state import RankPilotState
 from src.agents.structural_analyzer import structural_analyzer_node
 from src.agents.interrogator import interrogator_node
 from src.agents.snapshot_generator import snapshot_generator_node
+from src.agents.scheduler import scheduler_node
+from src.agents.executive_writer import executive_writer_node
 
 def create_rankpilot_workflow():
     """
-    Initializes the LangGraph StateMachine for the RankPilot Engine.
+    Initializes the LangGraph StateMachine with Parallel Strategic Nodes.
     """
-    # 1. Initialize the Graph with our Shared State
     workflow = StateGraph(RankPilotState)
 
-    # 2. Add the Atomic Nodes
+    # 1. Add Atomic Nodes
     workflow.add_node("analyze_structure", structural_analyzer_node)
     workflow.add_node("interrogate", interrogator_node)
-    workflow.add_node("generate_snapshot", snapshot_generator_node)
-
-    # 3. Define the Entry Point
-    workflow.set_entry_point("analyze_structure") # We start with the structural analysis after ingestion
-
-    # 4. Define the Transitions (Edges)
     
-    # From Analysis, we ALWAYS go to Interrogation first
+    # --- Parallel Nodes (Fan-out) ---
+    workflow.add_node("generate_snapshot", snapshot_generator_node) # The Auditor
+    workflow.add_node("strategic_scheduler", scheduler_node) # The Architect
+    
+    # --- Synthesis Node (Fan-in) ---
+    workflow.add_node("executive_writer", executive_writer_node) # The Voice
+
+    # 2. Define Entry Point
+    workflow.set_entry_point("analyze_structure")
+
+    # 3. Define Linear Edges
     workflow.add_edge("analyze_structure", "interrogate")
 
-    # From Interrogation, we have a "Conditional Gate"
-    # This checks the 'next_node' variable set by the Interrogator Agent
+    # 4. Define Interrogation Loop (Conditional)
     def route_interrogation(state: RankPilotState):
         if state.get("next_node") == "generate_snapshot":
-            return "generate_snapshot"
-        return "interrogate" # This creates the loop for the 6 steps
+            # Returning a list triggers parallel execution (fan-out)
+            return ["generate_snapshot"] 
+        
+        # Even for a single node, you can return a list or just the string
+        return "interrogate"
 
+    # 2. Update the mapping so values are single strings (node names)
     workflow.add_conditional_edges(
         "interrogate",
         route_interrogation,
@@ -40,11 +48,13 @@ def create_rankpilot_workflow():
         }
     )
 
-    # 5. Define the End Point
-    workflow.add_edge("generate_snapshot", END)
+    # 5. Define Fan-in (Wait for both parallel nodes to finish)
+    workflow.add_edge("generate_snapshot", "strategic_scheduler") # Architect second
+    workflow.add_edge("strategic_scheduler", "executive_writer") # Writer last
 
-    # 6. Compile the Graph
+    # 6. Define End Point
+    workflow.add_edge("executive_writer", END)
+
     return workflow.compile()
 
-# This is what you will import in main.py
 app_workflow = create_rankpilot_workflow()

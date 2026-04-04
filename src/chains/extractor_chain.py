@@ -12,6 +12,7 @@ class ExtractionResult(BaseModel):
     confidence_score: float = Field(description="Score between 0.0 and 1.0 based on the initial PDF richness.")
     initial_signals: List[str] = Field(description="Exactly 3 specific strengths or 'proof points' found in the text.")
     gaps: List[str] = Field(description="A list of 4 - 6 gaps identified in the document structure.")
+    firm_name: str = Field(description="The name of the law firm as mentioned in the submission.")
 
 # 2. Set up the Parser
 parser = PydanticOutputParser(pydantic_object=ExtractionResult)

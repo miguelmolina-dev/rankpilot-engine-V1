@@ -27,12 +27,19 @@ def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
         analysis_result = analysis_result_obj.dict() # Convert object to dictionary
         print(f"--- DEBUG: LLM Response Received: {analysis_result.get('practice_model')} ---")
 
+        # 1. Get the current metadata from state
+        updated_metadata = state.get("metadata", {}).copy()
+
+        # 2. Inject the dynamically extracted firm_name from the LLM result
+        # This ensures metadata is enriched with the firm name found in the PDF
+        updated_metadata["firm_name"] = analysis_result.get("firm_name", "Unknown Firm")
+
         # 3. Update the State
         # Note: We don't fill 'positioning_tier' yet, just the core model and gaps
         return {
             # We must include the existing state keys
             "submission_id": state.get("submission_id"),
-            "metadata": state.get("metadata"),
+            "metadata": updated_metadata,
             "raw_text": state.get("raw_text"),
             "history": state.get("history", []),
             "gaps": analysis_result.get("gaps", []), # Add the identified gaps to the state

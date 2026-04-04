@@ -17,11 +17,6 @@ class BlindSpot(TypedDict):
     issue: str
     description: str
 
-class EvolutionAction(TypedDict):
-    action: str
-    impact: str
-    instruction: str
-
 class NewAnswer(TypedDict):
     question_text: str
     answer: str
@@ -31,6 +26,28 @@ class MetaData(TypedDict):
     directory: Optional[str]
     current_band: Optional[str]
     target_band: Optional[str]
+    region: str                 # e.g., "Latin America", "Europe"
+    practice_area: str          # e.g., "Tax", "Banking & Finance"
+    location: str             # e.g., "São Paulo", "New York"   
+    submission_deadline: str    # Format: YYYY-MM-DD
+    firm_name: str
+
+class Milestone(TypedDict):
+    """Individual task in the strategic roadmap."""
+    category: str           # "Strategic Narrative", "Quantitative Density", etc.
+    action_title: str       # Short title for the Laravel UI
+    why_it_matters: str     # The business value for the Partner
+    technical_instruction: str # Detailed "How-to" for the lawyer
+    priority_level: int     # 1 (Critical) to 5 (Low)
+    days_before_deadline: int # Calculated days remaining until submission
+
+class ExecutiveSummary(TypedDict):
+    """Data for the Dynamic Dashboard and the Audit Letter."""
+    overall_score: int          # 0-100 for the progress ring/chart
+    risk_level: str             # "Critical", "Moderate", "Low"
+    strategic_verdict: str      # A powerful 3-line impact paragraph
+    top_differentiators: List[str] # Strongest points found in the PDF
+    audit_letter_markdown: str  # Full body of the professional letter
 
 class RankPilotState(TypedDict):
     # --- Metadata & Input ---
@@ -52,7 +69,10 @@ class RankPilotState(TypedDict):
     # --- Results Fields ---
     blind_spots: List[BlindSpot]
     competitive_advantage: List[str]
-    evolution_path: List[EvolutionAction]
+    evolution_path: list[Milestone]
+
+    #Executive Summary
+    executive_summary: Optional[ExecutiveSummary]
     
     # --- Flow Control ---
     next_node: str
