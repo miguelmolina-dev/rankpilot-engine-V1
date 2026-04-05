@@ -17,7 +17,22 @@ def create_rankpilot_workflow():
     workflow.add_node("generate_snapshot", snapshot_generator_node)
 
     # 3. Define the Entry Point
-    workflow.set_entry_point("analyze_structure") # We start with the structural analysis after ingestion
+    def route_entry_point(state: RankPilotState):
+        if state.get("next_node") == "interrogate":
+            return "interrogate"
+        elif state.get("next_node") == "generate_snapshot":
+            return "generate_snapshot"
+        # Default starting point
+        return "analyze_structure"
+
+    workflow.set_conditional_entry_point(
+        route_entry_point,
+        {
+            "analyze_structure": "analyze_structure",
+            "interrogate": "interrogate",
+            "generate_snapshot": "generate_snapshot"
+        }
+    )
 
     # 4. Define the Transitions (Edges)
     
@@ -29,14 +44,15 @@ def create_rankpilot_workflow():
     def route_interrogation(state: RankPilotState):
         if state.get("next_node") == "generate_snapshot":
             return "generate_snapshot"
-        return "interrogate" # This creates the loop for the 6 steps
+        # Otherwise we want to STOP execution and ask the user a question
+        return END
 
     workflow.add_conditional_edges(
         "interrogate",
         route_interrogation,
         {
             "generate_snapshot": "generate_snapshot",
-            "interrogate": "interrogate"
+            END: END
         }
     )
 
