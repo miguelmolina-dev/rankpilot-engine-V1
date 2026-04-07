@@ -1,21 +1,21 @@
 from src.graph.state import RankPilotState
 from src.chains.extractor_chain import extraction_chain
-from src.utils.pdf_loader import extract_text_from_pdf, clean_extracted_text
+from src.utils.document_loader import extract_text_from_base64, clean_extracted_text
 
 def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
     """
-    Node 1: Parses the PDF (if not already parsed) and identifies 
+    Node 1: Parses the document (if not already parsed) and identifies
     the initial structural gaps and practice model.
     """
     print("--- [NODE] Starting Structural Analysis ---")
     
     # 1. Get the text (This only happens in the very first hit)
     if not state.get("raw_text"):
-        if not state.get("metadata", {}).get("file_path"):
-            return {"status": "error", "message": "No file_path in metadata for structural analysis."}
-        # We assume the file_path is passed in metadata by Laravel
-        file_path = state["metadata"].get("file_path")
-        raw_data = extract_text_from_pdf(file_path)
+        if not state.get("metadata", {}).get("file_base64"):
+            return {"status": "error", "message": "No file_base64 in metadata for structural analysis."}
+        # We assume the file_base64 is passed in metadata by Laravel
+        file_base64 = state["metadata"].get("file_base64")
+        raw_data = extract_text_from_base64(file_base64)
         state["raw_text"] = clean_extracted_text(raw_data)
         print("--- DEBUG: raw_text extracted ---")
 

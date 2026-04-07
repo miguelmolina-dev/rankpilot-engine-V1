@@ -27,7 +27,7 @@ class NewAnswer(TypedDict):
     answer: str
 
 class MetaData(TypedDict):
-    file_path: str
+    file_base64: str
     directory: Optional[str]
     current_band: Optional[str]
     target_band: Optional[str]
