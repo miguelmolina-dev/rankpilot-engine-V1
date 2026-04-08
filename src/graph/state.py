@@ -1,9 +1,8 @@
 from typing import TypedDict, List, Optional, Any
 from pydantic import BaseModel
-
-# --- 1. VALIDATION MODELS (BaseModel) ---
-# These are used EXCLUSIVELY for FastAPI validation. 
-# We append 'Model' to the names to avoid namespace collisions.
+# --- 1. SUB-ESTRUCTURAS (TypedDict) ---
+# Definimos los componentes internos solo como TypedDict. 
+# Esto los hace compatibles con .get() en tus nodos.
 
 class PositioningCore(TypedDict):
     practice_model: str  
@@ -34,8 +33,8 @@ class MetaData(TypedDict):
     current_band: Optional[str]
     target_band: Optional[str]
 
-# --- 2. THE GRAPH STATE (LangGraph) ---
-# Use this class for: workflow = StateGraph(RankPilotState)
+# --- 2. EL ESTADO DEL GRAFO (LangGraph) ---
+# IMPORTANTE: No pongas "= []" o "= 0" aquí. TypedDict solo acepta tipos.
 class RankPilotState(TypedDict):
     submission_id: str
     metadata: Optional[MetaData]
@@ -51,12 +50,12 @@ class RankPilotState(TypedDict):
     evolution_path: List[EvolutionAction]
     next_node: str
 
-# --- 3. THE REQUEST WRAPPER (FastAPI / Pydantic) ---
-# Use this class in your endpoint: async def process(request: RankPilotRequest)
+# --- 3. EL ESQUEMA DE PETICIÓN (FastAPI / Pydantic) ---
+# Aquí SÍ usamos valores por defecto para que Laravel pueda enviar JSONs incompletos.
 class RankPilotRequest(BaseModel):
     submission_id: str
     metadata: Optional[MetaData] = None
-    raw_text: str  
+    raw_text: str = ""
     new_answer: Optional[NewAnswer] = None
     history: List[str] = []
     current_step: int = 0
