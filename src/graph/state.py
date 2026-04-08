@@ -1,39 +1,59 @@
-from typing import Annotated, TypedDict, List, Dict, Optional
-from langgraph.graph.message import add_messages
-from operator import add
+from typing import TypedDict, List, Optional
 from pydantic import BaseModel
 
-# Matches CorePositioning in snapshot_chain.py
-class PositioningCore(BaseModel):
+# --- 1. DEFINICIONES DE TIPOS (TypedDict) ---
+# Usamos TypedDict para que tus nodos de LangGraph puedan usar .get() sin problemas.
+# Pydantic V2 es capaz de validar estos diccionarios dentro de un BaseModel.
+
+class PositioningCore(TypedDict):
     practice_model: str  
     practice_definition: str  
     confidence_score: float
     signals: List[str]
 
-class PositioningTier(BaseModel):
+class PositioningTier(TypedDict):
     label: str
     explanation: str
 
-class BlindSpot(BaseModel):
+class BlindSpot(TypedDict):
     issue: str
     description: str
 
-class EvolutionAction(BaseModel):
+class EvolutionAction(TypedDict):
     action: str
     impact: str
     instruction: str
 
-class NewAnswer(BaseModel):
+class NewAnswer(TypedDict):
     question_text: str
     answer: str
 
-class MetaData(BaseModel):
+class MetaData(TypedDict):
     file_base64: str
     directory: Optional[str]
     current_band: Optional[str]
     target_band: Optional[str]
 
-class RankPilotState(BaseModel):
+# --- 2. EL ESTADO DEL GRAFO (LangGraph) ---
+# Usa esta clase en: workflow = StateGraph(RankPilotState)
+class RankPilotState(TypedDict):
+    submission_id: str
+    metadata: Optional[MetaData]
+    raw_text: str  
+    new_answer: Optional[NewAnswer]
+    history: List[str]
+    current_step: int
+    gaps: Optional[List[str]]
+    positioning_core: Optional[PositioningCore]
+    positioning_tier: Optional[PositioningTier]
+    blind_spots: List[BlindSpot]
+    competitive_advantage: List[str]
+    evolution_path: List[EvolutionAction]
+    next_node: str
+
+# --- 3. EL ESQUEMA DE PETICIÓN (FastAPI / Pydantic) ---
+# Usa esta clase en el endpoint: async def process(request: RankPilotRequest)
+class RankPilotRequest(BaseModel):
     submission_id: str
     metadata: Optional[MetaData] = None
     raw_text: str  
