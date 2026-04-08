@@ -22,5 +22,5 @@ jobs:
             cd ${{ secrets.APP_DIR }}
             git pull origin main
             cd ${{ secrets.APP_DIR_BASE }}
-            docker-compose -f ${{ secrets.COMPOSEFILE }} down
-            docker-compose -f ${{ secrets.COMPOSEFILE }} up -d --build
+            sudo docker-compose -f ${{ secrets.COMPOSEFILE }} down
+            sudo docker-compose -f ${{ secrets.COMPOSEFILE }} up -d --build
