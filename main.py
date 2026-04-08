@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from src.graph.workflow import app_workflow
 from src.graph.state import RankPilotState
 
@@ -12,5 +12,8 @@ async def process_submission(state: RankPilotState):
     """
     # LangGraph will start from the 'next_node' specified in the state 
     # and run until it hits a breakpoint or a node that returns a state update. [cite: 50, 53]
-    result = app_workflow.invoke(state)
-    return result
+    try:
+        result = app_workflow.invoke(state)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
