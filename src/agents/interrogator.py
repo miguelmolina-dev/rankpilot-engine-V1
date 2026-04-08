@@ -3,53 +3,59 @@ from src.chains.question_chain import question_chain
 
 def interrogator_node(state: RankPilotState):
     print("--- [NODE] Starting Interrogation Step ---")
-    # 1. Ingestion: Process incoming Laravel JSON
-    # Use .get() to avoid KeyError if Laravel sends a different structure
-    new_ans = state.get("new_answer", {})
-    history = state.get("history", [])
+    
+    # 1. Ingestion: Accessing the dictionary safely
+    # Use .get() because RankPilotState is now a TypedDict
+    new_ans = state.get("new_answer") or {} 
+    history = state.get("history") or []
+    current_step = state.get("current_step", 0)
 
-    print(f"Current Step before increment: {state.get('current_step', 0)}")
+    print(f"Current Step: {current_step}")
 
-    if new_ans:
+    # 2. Update History with the previous interaction
+    if new_ans and new_ans.get('answer'):
         q_text = new_ans.get('question_text', 'Unknown Question')
         answer = new_ans.get('answer', '')
-        history.append(f"Q_Text: {q_text} | Answer: {answer}")
+        history.append(f"Q: {q_text} | A: {answer}")
 
-    # 2. Check for Completion (Transition to Snapshot)
-    if state.get("current_step", 0) >= 6:
-        print("--- [NODE] Interrogation Complete. Moving to Snapshot Generation ---")
+    # 3. Check for Completion (Threshold: 6 steps)
+    if current_step >= 6:
+        print("--- [NODE] Interrogation Complete. Transitioning to Snapshot ---")
         return {
-            "submission_id": state.get("submission_id"),
-            "status": "completed", # Ensure your router recognizes 'completed'
-            "current_step": state.get("current_step", 0) + 1,
-            "next_node": "generate_snapshot", 
-            "history": history
+            "history": history,
+            "next_node": "generate_snapshot", # Triggers the next phase
+            "current_step": current_step + 1
         }
 
-    # 3. Processing: Use 'text' from ingestion to avoid KeyError
-    # Laravel Initial JSON provides text inside 'file_content'
-    raw_text = state.get("file_content", {}).get("text", "")
+    # 4. Processing: Fix the 'raw_text' mapping
+    # Your state uses 'raw_text', NOT 'file_content'
+    raw_text = state.get("raw_text", "")
     
     input_data = {
         "raw_text": raw_text,
         "history": history,
-        "current_step": state.get("current_step", 0),
-        "gaps": state.get("gaps", "No specific gaps identified yet."),
-        "last_answer": state.get("new_answer", "this is the first question, no answer yet.")
+        "current_step": current_step,
+        "gaps": state.get("gaps") or "No specific gaps identified yet.",
+        "last_answer": new_ans.get('answer', "First question - No previous answer.")
     }
     
-    # 4. Output: Call chain and handle Pydantic object correctly
-    response = question_chain.invoke(input_data)
-    print("--- [DEBUG] EXITING INTERROGATOR NODE. ---")
-    print(f"next_question: {response.text}")
-    return {
-        "submission_id": state.get("submission_id"),
-        "status": "continue",
-        "current_step": state.get("current_step", 0) + 1,
-        "history": history,
-        "new_answer": {
-            "question_text": response.text,
-            "answer": "" # We will fill this in the next hit from Laravel
-        },
-        "next_node": "interrogate" 
-    }
+    # 5. Output: Generate the next Tyler Durden question
+    try:
+        response = question_chain.invoke(input_data)
+        # Note: If using a custom chain, ensure it returns an object with a .text attribute
+        next_question = response.text if hasattr(response, 'text') else str(response)
+        
+        print(f"Next Tyler Question: {next_question}")
+
+        return {
+            "history": history,
+            "current_step": current_step + 1,
+            "new_answer": {
+                "question_text": next_question,
+                "answer": "" # Laravel will fill this in the next hit
+            },
+            "next_node": "interrogate" 
+        }
+    except Exception as e:
+        print(f"Error in Tyler Durden Chain: {e}")
+        raise e

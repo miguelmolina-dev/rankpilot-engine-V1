@@ -1,43 +1,58 @@
 from typing import TypedDict, List, Optional, Any
 from pydantic import BaseModel
 
-# --- 1. DEFINICIONES DE TIPOS (TypedDict) ---
-# Usamos TypedDict para que tus nodos de LangGraph puedan usar .get() sin problemas.
-# Pydantic V2 es capaz de validar estos diccionarios dentro de un BaseModel
+# --- 1. VALIDATION MODELS (BaseModel) ---
+# These are used EXCLUSIVELY for FastAPI validation. 
+# We append 'Model' to the names to avoid namespace collisions.
 
-# --- 1. SUB-ESTRUCTURAS (BaseModel) ---
-# Estas clases permiten que FastAPI genere el esquema JSON sin crashear.
-class PositioningCore(BaseModel):
+class PositioningCore(TypedDict):
     practice_model: str  
     practice_definition: str  
     confidence_score: float
     signals: List[str]
 
-class PositioningTier(BaseModel):
+class PositioningTier(TypedDict):
     label: str
     explanation: str
 
-class BlindSpot(BaseModel):
+class BlindSpot(TypedDict):
     issue: str
     description: str
 
-class EvolutionAction(BaseModel):
+class EvolutionAction(TypedDict):
     action: str
     impact: str
     instruction: str
 
-class NewAnswer(BaseModel):
+class NewAnswer(TypedDict):
     question_text: str
     answer: str
 
-class MetaData(BaseModel):
+class MetaData(TypedDict):
     file_base64: str
-    directory: Optional[str] = None
-    current_band: Optional[str] = None
-    target_band: Optional[str] = None
+    directory: Optional[str]
+    current_band: Optional[str]
+    target_band: Optional[str]
 
-# --- 2. ESQUEMA DE ENTRADA PARA FASTAPI (BaseModel) ---
-# Este es el "Escudo" que recibe los datos de Laravel.
+# --- 2. THE GRAPH STATE (LangGraph) ---
+# Use this class for: workflow = StateGraph(RankPilotState)
+class RankPilotState(TypedDict):
+    submission_id: str
+    metadata: Optional[MetaData]
+    raw_text: str  
+    new_answer: Optional[NewAnswer]
+    history: List[str]
+    current_step: int
+    gaps: Optional[List[str]]
+    positioning_core: Optional[PositioningCore]
+    positioning_tier: Optional[PositioningTier]
+    blind_spots: List[BlindSpot]
+    competitive_advantage: List[str]
+    evolution_path: List[EvolutionAction]
+    next_node: str
+
+# --- 3. THE REQUEST WRAPPER (FastAPI / Pydantic) ---
+# Use this class in your endpoint: async def process(request: RankPilotRequest)
 class RankPilotRequest(BaseModel):
     submission_id: str
     metadata: Optional[MetaData] = None
@@ -52,21 +67,3 @@ class RankPilotRequest(BaseModel):
     competitive_advantage: List[str] = []
     evolution_path: List[EvolutionAction] = []
     next_node: str = ""
-
-# --- 3. ESTADO DEL GRAFO PARA LANGGRAPH (TypedDict) ---
-# Usa esta clase exclusivamente para definir tu Grafo: StateGraph(RankPilotState).
-# Al usar Any/dict en los campos anidados, evitamos que Pydantic intente validarlos aquí.
-class RankPilotState(TypedDict):
-    submission_id: str
-    metadata: Optional[dict]
-    raw_text: str  
-    new_answer: Optional[dict]
-    history: List[str]
-    current_step: int
-    gaps: Optional[List[str]]
-    positioning_core: Optional[dict]
-    positioning_tier: Optional[dict]
-    blind_spots: List[dict]
-    competitive_advantage: List[str]
-    evolution_path: List[dict]
-    next_node: str
