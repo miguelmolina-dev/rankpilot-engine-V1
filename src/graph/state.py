@@ -4,30 +4,30 @@ from pydantic import BaseModel
 # Definimos los componentes internos solo como TypedDict. 
 # Esto los hace compatibles con .get() en tus nodos.
 
-class PositioningCore(TypedDict):
+class PositioningCore(TypedDict, total=False):
     practice_model: str  
     practice_definition: str  
     confidence_score: float
     signals: List[str]
 
-class PositioningTier(TypedDict):
+class PositioningTier(TypedDict, total=False):
     label: str
     explanation: str
 
-class BlindSpot(TypedDict):
+class BlindSpot(TypedDict, total=False):
     issue: str
     description: str
 
-class EvolutionAction(TypedDict):
+class EvolutionAction(TypedDict, total=False):
     action: str
     impact: str
     instruction: str
 
-class NewAnswer(TypedDict):
+class NewAnswer(TypedDict, total=False):
     question_text: str
     answer: str
 
-class MetaData(TypedDict):
+class MetaData(TypedDict, total=False):
     file_base64: str
     directory: Optional[str]
     current_band: Optional[str]
