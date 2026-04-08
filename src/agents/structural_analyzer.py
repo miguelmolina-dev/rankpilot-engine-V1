@@ -32,15 +32,8 @@ def structural_analyzer_node(state: RankPilotState) -> dict:
     try: 
         print("--- DEBUG: Invoking Extraction Chain ---")
         # 2. Invocación de la cadena LCEL
-        # Pydantic V2 usa .model_dump() en lugar de .dict()
         analysis_result_obj = extraction_chain.invoke({"text": raw_text})
-        
-        if hasattr(analysis_result_obj, 'model_dump'):
-            analysis_result = analysis_result_obj.model_dump()
-        else:
-            analysis_result = dict(analysis_result_obj)
-
-        print(f"--- DEBUG: LLM Identified Model: {analysis_result.get('practice_model')} ---")
+        print(f"--- DEBUG: LLM Identified Model: {analysis_result_obj.practice_model} ---")
 
     except Exception as e:
         print(f"!!! Error in Extraction Chain: {e}")
@@ -50,12 +43,12 @@ def structural_analyzer_node(state: RankPilotState) -> dict:
     # En LangGraph, solo devolvemos lo que cambia. El resto se mantiene.
     return {
         "raw_text": raw_text,
-        "gaps": analysis_result.get("gaps", []),
+        "gaps": analysis_result_obj.gaps if analysis_result_obj.gaps else [],
         "positioning_core": PositioningCore(
-            practice_model=analysis_result.get("practice_model", ""),
-            practice_definition=analysis_result.get("practice_definition") or analysis_result.get("definition", ""),
-            confidence_score=analysis_result.get("confidence_score", 0.0),
-            signals=analysis_result.get("initial_signals", [])
+            practice_model=analysis_result_obj.practice_model if analysis_result_obj.practice_model else "",
+            practice_definition=analysis_result_obj.definition if analysis_result_obj.definition else "",
+            confidence_score=analysis_result_obj.confidence_score if analysis_result_obj.confidence_score else 0.0,
+            signals=analysis_result_obj.initial_signals if analysis_result_obj.initial_signals else []
         ),
         "current_step": 1,
         "next_node": "interrogate" 
