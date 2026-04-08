@@ -1,15 +1,24 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from src.graph.workflow import app_workflow
 from src.graph.state import RankPilotState
 
 app = FastAPI(title="RankPilot Engine")
 
 @app.post("/process")
-async def process_state(state: RankPilotState):
-    # Convertimos el modelo de Pydantic a un diccionario compatible con tus nodos
-    state_dict = state.model_dump()
+async def process_submission(state: RankPilotState):
+    """
+    The main endpoint for Laravel. 
+    Receives the current state, runs one 'turn' of the graph, and returns the update. [cite: 5, 6]
+    """
+    # LangGraph will start from the 'next_node' specified in the state 
+    # and run until it hits a breakpoint or a node that returns a state update. [cite: 50, 53]
+    try:
+        # Convertimos el modelo de Pydantic a un diccionario compatible con tus nodos
+        state_dict = state.model_dump()
     
     # Ejecutamos el workflow
-    final_state = app_workflow.invoke(state_dict)
-    
-    return final_state
+
+        final_state = app_workflow.invoke(state_dict)
+        return final_state
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
