@@ -47,7 +47,7 @@ def interrogator_node(state: RankPilotState):
         # Note: If using a custom chain, ensure it returns an object with a .text attribute
         next_question = response.text if hasattr(response, 'text') else str(response)
         
-        print(f"Next Tyler Question: {next_question}")
+        print(f"Next Question: {next_question}")
 
         return {
             "history": history,
@@ -59,5 +59,5 @@ def interrogator_node(state: RankPilotState):
             "next_node": "interrogate" 
         }
     except Exception as e:
-        print(f"Error in Tyler Durden Chain: {e}")
+        print(f"Error in interrogator Chain: {e}")
         raise e
