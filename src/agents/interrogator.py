@@ -4,38 +4,37 @@ from src.chains.question_chain import question_chain
 def interrogator_node(state: RankPilotState):
     print("--- [NODE] Starting Interrogation Step ---")
     # 1. Ingestion: Process incoming Laravel JSON
-    # Use .get() to avoid KeyError if Laravel sends a different structure
-    new_ans = state.get("new_answer", {})
-    history = state.get("history", [])
+    new_ans = state.new_answer
+    history = state.history
 
-    print(f"Current Step before increment: {state.get('current_step', 0)}")
+    print(f"Current Step before increment: {state.current_step}")
 
     if new_ans:
-        q_text = new_ans.get('question_text', 'Unknown Question')
-        answer = new_ans.get('answer', '')
+        q_text = new_ans.question_text if new_ans.question_text else 'Unknown Question'
+        answer = new_ans.answer if new_ans.answer else ''
         history.append(f"Q_Text: {q_text} | Answer: {answer}")
 
     # 2. Check for Completion (Transition to Snapshot)
-    if state.get("current_step", 0) >= 3:
+    if state.current_step >= 3:
         print("--- [NODE] Interrogation Complete. Moving to Snapshot Generation ---")
         return {
-            "submission_id": state.get("submission_id"),
+            "submission_id": state.submission_id,
             "status": "completed", # Ensure your router recognizes 'completed'
-            "current_step": state.get("current_step", 0) + 1,
+            "current_step": state.current_step + 1,
             "next_node": "generate_snapshot", 
             "history": history
         }
 
     # 3. Processing: Use 'text' from ingestion to avoid KeyError
     # Laravel Initial JSON provides text inside 'file_content'
-    raw_text = state.get("file_content", {}).get("text", "")
+    raw_text = state.file_content.get("text", "") if state.file_content else ""
     
     input_data = {
         "raw_text": raw_text,
         "history": history,
-        "current_step": state.get("current_step", 0),
-        "gaps": state.get("gaps", "No specific gaps identified yet."),
-        "last_answer": state.get("new_answer", "this is the first question, no answer yet.")
+        "current_step": state.current_step,
+        "gaps": state.gaps if state.gaps else "No specific gaps identified yet.",
+        "last_answer": state.new_answer if state.new_answer else "this is the first question, no answer yet."
     }
     
     # 4. Output: Call chain and handle Pydantic object correctly
@@ -43,9 +42,9 @@ def interrogator_node(state: RankPilotState):
     print("--- [DEBUG] EXITING INTERROGATOR NODE. ---")
     print(f"next_question: {response.text}")
     return {
-        "submission_id": state.get("submission_id"),
+        "submission_id": state.submission_id,
         "status": "continue",
-        "current_step": state.get("current_step", 0) + 1,
+        "current_step": state.current_step + 1,
         "history": history,
         "new_answer": {
             "question_text": response.text,

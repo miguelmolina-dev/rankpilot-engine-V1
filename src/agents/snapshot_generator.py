@@ -9,11 +9,11 @@ def snapshot_generator_node(state: RankPilotState):
     try:
         # ... invoke logic remains the same ...
         result = snapshot_chain.invoke({
-            "raw_text": state.get("raw_text", ""),
-            "history": state.get("history", []),
-            "practice_model": state.get("positioning_core", {}).get("practice_model", "Unknown Model"),
-            "submission_id": state.get("submission_id", "Default-ID"),
-            "gaps": state.get("gaps", "No specific gaps identified yet.")
+            "raw_text": state.raw_text,
+            "history": state.history,
+            "practice_model": state.positioning_core.practice_model if state.positioning_core else "Unknown Model",
+            "submission_id": state.submission_id,
+            "gaps": state.gaps if state.gaps else "No specific gaps identified yet."
         })
         
         # Flatten the result so it matches your RankPilotState keys
