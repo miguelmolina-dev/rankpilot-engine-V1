@@ -1,58 +1,38 @@
-from typing import TypedDict, List, Optional, Any
+from typing import List, Optional, Any
 from pydantic import BaseModel
-# --- 1. SUB-ESTRUCTURAS (TypedDict) ---
-# Definimos los componentes internos solo como TypedDict. 
-# Esto los hace compatibles con .get() en tus nodos.
 
-class PositioningCore(TypedDict):
-    practice_model: str  
-    practice_definition: str  
-    confidence_score: float
-    signals: List[str]
+# --- 1. SUB-ESTRUCTURAS (Pydantic Models) ---
+class PositioningCore(BaseModel):
+    practice_model: str = ""
+    practice_definition: str = ""
+    confidence_score: float = 0.0
+    signals: List[str] = []
 
-class PositioningTier(TypedDict):
-    label: str
-    explanation: str
+class PositioningTier(BaseModel):
+    label: str = ""
+    explanation: str = ""
 
-class BlindSpot(TypedDict):
-    issue: str
-    description: str
+class BlindSpot(BaseModel):
+    issue: str = ""
+    description: str = ""
 
-class EvolutionAction(TypedDict):
-    action: str
-    impact: str
-    instruction: str
+class EvolutionAction(BaseModel):
+    action: str = ""
+    impact: str = ""
+    instruction: str = ""
 
-class NewAnswer(TypedDict):
-    question_text: str
-    answer: str
+class NewAnswer(BaseModel):
+    question_text: str = ""
+    answer: str = ""
 
-class MetaData(TypedDict):
-    file_base64: str
-    directory: Optional[str]
-    current_band: Optional[str]
-    target_band: Optional[str]
+class MetaData(BaseModel):
+    file_base64: str = ""
+    directory: Optional[str] = None
+    current_band: Optional[str] = None
+    target_band: Optional[str] = None
 
-# --- 2. EL ESTADO DEL GRAFO (LangGraph) ---
-# IMPORTANTE: No pongas "= []" o "= 0" aquí. TypedDict solo acepta tipos.
-class RankPilotState(TypedDict):
-    submission_id: str
-    metadata: Optional[MetaData]
-    raw_text: str  
-    new_answer: Optional[NewAnswer]
-    history: List[str]
-    current_step: int
-    gaps: Optional[List[str]]
-    positioning_core: Optional[PositioningCore]
-    positioning_tier: Optional[PositioningTier]
-    blind_spots: List[BlindSpot]
-    competitive_advantage: List[str]
-    evolution_path: List[EvolutionAction]
-    next_node: str
-
-# --- 3. EL ESQUEMA DE PETICIÓN (FastAPI / Pydantic) ---
-# Aquí SÍ usamos valores por defecto para que Laravel pueda enviar JSONs incompletos.
-class RankPilotRequest(BaseModel):
+# --- 2. EL ESTADO DEL GRAFO Y PETICIÓN (LangGraph / FastAPI) ---
+class RankPilotState(BaseModel):
     submission_id: str
     metadata: Optional[MetaData] = None
     raw_text: str = ""
@@ -66,3 +46,6 @@ class RankPilotRequest(BaseModel):
     competitive_advantage: List[str] = []
     evolution_path: List[EvolutionAction] = []
     next_node: str = ""
+
+# Since RankPilotRequest is the same as the RankPilotState, we can just alias it
+RankPilotRequest = RankPilotState

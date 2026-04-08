@@ -2,6 +2,8 @@ from src.graph.state import RankPilotState
 from src.chains.extractor_chain import extraction_chain
 from src.utils.document_loader import extract_text_from_base64, clean_extracted_text
 
+from src.graph.state import PositioningCore
+
 def structural_analyzer_node(state: RankPilotState) -> dict:
     """
     Node 1: Parses the document and identifies initial structural gaps.
@@ -9,11 +11,11 @@ def structural_analyzer_node(state: RankPilotState) -> dict:
     print("--- [NODE] Starting Structural Analysis ---")
     
     # 1. Obtención del texto (Solo en la primera ejecución)
-    raw_text = state.get("raw_text")
-    metadata = state.get("metadata") or {}
+    raw_text = state.raw_text
+    metadata = state.metadata
 
     if not raw_text:
-        file_base64 = metadata.get("file_base64")
+        file_base64 = metadata.file_base64 if metadata else None
         if not file_base64:
             print("!!! ERROR: No file_base64 found in metadata.")
             return {"next_node": "end", "gaps": ["Missing file_base64"]}
@@ -49,12 +51,12 @@ def structural_analyzer_node(state: RankPilotState) -> dict:
     return {
         "raw_text": raw_text,
         "gaps": analysis_result.get("gaps", []),
-        "positioning_core": {
-            "practice_model": analysis_result.get("practice_model"),
-            "practice_definition": analysis_result.get("practice_definition") or analysis_result.get("definition"),
-            "confidence_score": analysis_result.get("confidence_score", 0.0),
-            "signals": analysis_result.get("initial_signals", [])
-        },
+        "positioning_core": PositioningCore(
+            practice_model=analysis_result.get("practice_model", ""),
+            practice_definition=analysis_result.get("practice_definition") or analysis_result.get("definition", ""),
+            confidence_score=analysis_result.get("confidence_score", 0.0),
+            signals=analysis_result.get("initial_signals", [])
+        ),
         "current_step": 1,
         "next_node": "interrogate" 
     }

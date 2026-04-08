@@ -7,11 +7,8 @@ app = FastAPI(title="RankPilot Engine")
 @app.post("/process")
 async def process_submission(request: RankPilotRequest):
     try:
-        # model_dump() crea el diccionario que RankPilotState espera
-        state_dict = request.model_dump()
-        
-        # Invocamos el grafo
-        final_state = app_workflow.invoke(state_dict)
+        # Invocamos el grafo - Since RankPilotState is now a BaseModel, we can pass it directly
+        final_state = app_workflow.invoke(request)
         return final_state
     except Exception as e:
         print(f"!!! Error en el flujo: {e}")

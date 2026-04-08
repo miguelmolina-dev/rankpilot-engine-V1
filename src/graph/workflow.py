@@ -18,9 +18,9 @@ def create_rankpilot_workflow():
 
     # 3. Define the Entry Point
     def route_entry_point(state: RankPilotState):
-        if state.get("next_node") == "interrogate":
+        if state.next_node == "interrogate":
             return "interrogate"
-        elif state.get("next_node") == "generate_snapshot":
+        elif state.next_node == "generate_snapshot":
             return "generate_snapshot"
         # Default starting point
         return "analyze_structure"
@@ -42,7 +42,7 @@ def create_rankpilot_workflow():
     # From Interrogation, we have a "Conditional Gate"
     # This checks the 'next_node' variable set by the Interrogator Agent
     def route_interrogation(state: RankPilotState):
-        if state.get("next_node") == "generate_snapshot":
+        if state.next_node == "generate_snapshot":
             return "generate_snapshot"
         # Otherwise we want to STOP execution and ask the user a question
         return END
