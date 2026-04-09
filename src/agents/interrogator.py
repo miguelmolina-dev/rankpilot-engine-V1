@@ -15,7 +15,7 @@ def interrogator_node(state: RankPilotState):
         history.append(f"Q_Text: {q_text} | Answer: {answer}")
 
     # 2. Check for Completion (Transition to Snapshot)
-    if state.current_step >= 3:
+    if state.current_step >= 6:
         print("--- [NODE] Interrogation Complete. Moving to Snapshot Generation ---")
         return {
             "submission_id": state.submission_id,
