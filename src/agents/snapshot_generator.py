@@ -18,7 +18,12 @@ def snapshot_generator_node(state: RankPilotState):
         
         # Flatten the result so it matches your RankPilotState keys
         return {
-            "positioning_core": result.positioning_core.model_dump(),
+            "positioning_core": {
+                "practice_model": result.positioning_core.practice_model.label,
+                "practice_definition": result.positioning_core.practice_model.definition,
+                "confidence_score": result.positioning_core.confidence_score,
+                "signals": result.positioning_core.signals
+            },
             "positioning_tier": result.positioning_tier.model_dump(),
             "blind_spots": [bs.model_dump() for bs in result.blind_spots],
             "competitive_advantage": result.competitive_advantage,

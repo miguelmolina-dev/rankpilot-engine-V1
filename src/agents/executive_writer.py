@@ -12,33 +12,34 @@ def executive_writer_node(state: RankPilotState) -> Dict[str, Any]:
 
     # 1. Gather all inputs from the Parallel Nodes
     # positioning_core comes from the Snapshot Generator
-    pos_core = state.get("positioning_core", {})
+    pos_core = getattr(state, "positioning_core", {})
     
     # evolution_path comes from the Strategic Scheduler
-    evolution_path = state.get("evolution_path", [])
+    evolution_path = getattr(state, "evolution_path", [])
+
+    # We might get a list of Milestone objects or a list of dictionaries if state serialization hasn't caught up
     formatted_path = "\n".join([
-        f"STEP {i+1}: {step['action_title']} ({step['category']})\n"
-        f"WHY: {step['why_it_matters']}\n"
-        f"HOW: {step['technical_instruction']}\n"
+        f"STEP {i+1}: {getattr(step, 'action_title', step.get('action_title', '')) if hasattr(step, 'action_title') else step.get('action_title', '')} ({getattr(step, 'category', step.get('category', '')) if hasattr(step, 'category') else step.get('category', '')})\nWHY: {getattr(step, 'why_it_matters', step.get('why_it_matters', '')) if hasattr(step, 'why_it_matters') else step.get('why_it_matters', '')}\nHOW: {getattr(step, 'technical_instruction', step.get('technical_instruction', '')) if hasattr(step, 'technical_instruction') else step.get('technical_instruction', '')}\n"
         for i, step in enumerate(evolution_path)
     ]) if evolution_path else "No roadmap generated."
     
     # metadata includes the firm_name we extracted earlier
-    metadata = state.get("metadata", {})
+    metadata = getattr(state, "metadata", {})
     
     # 2. Prepare the Payload for the Writer Chain
     # We combine every signal, gap, and strategy into one context
+    # Use getattr with a fallback for dict access in case the state was serialized
     input_data = {
-        "firm_name": metadata.get("firm_name", "the Firm"),
-        "practice_area": metadata.get("practice_area", "General Law"),
-        "region": metadata.get("region", "Global"),
-        "positioning_tier": state.get("positioning_tier", {}),
-        "competitive_advantage": state.get("competitive_advantage", []),
-        "gaps": state.get("gaps", []),
-        "blind_spots": state.get("blind_spots", []),
+        "firm_name": getattr(metadata, "firm_name", metadata.get("firm_name", "the Firm") if isinstance(metadata, dict) else "the Firm"),
+        "practice_area": getattr(metadata, "practice_area", metadata.get("practice_area", "General Law") if isinstance(metadata, dict) else "General Law"),
+        "region": getattr(metadata, "region", metadata.get("region", "Global") if isinstance(metadata, dict) else "Global"),
+        "positioning_tier": getattr(state, "positioning_tier", {}),
+        "competitive_advantage": getattr(state, "competitive_advantage", []),
+        "gaps": getattr(state, "gaps", []),
+        "blind_spots": getattr(state, "blind_spots", []),
         "evolution_path": formatted_path,
         "positioning_core": pos_core,
-        "history": state.get("history", [])
+        "history": getattr(state, "history", [])
     }
     try:
         # 3. Invoke the Synthesis Chain
@@ -53,10 +54,10 @@ def executive_writer_node(state: RankPilotState) -> Dict[str, Any]:
                 "overall_score": response.overall_score,
                 "risk_level": response.risk_level,
                 "strategic_verdict": response.strategic_verdict,
-                "top_differentiators": state.get("competitive_advantage", []),
+                "top_differentiators": getattr(state, "competitive_advantage", []),
                 "audit_letter_markdown": response.audit_letter_markdown
             },
-            "current_step": state.get("current_step", 0) + 1
+            "current_step": getattr(state, "current_step", 0) + 1
         }
     except Exception as e:
         print(f"--- [ERROR] Executive Writer Node Failed: {str(e)} ---")
@@ -68,5 +69,5 @@ def executive_writer_node(state: RankPilotState) -> Dict[str, Any]:
                 "top_differentiators": [],
                 "audit_letter_markdown": "An error occurred during synthesis. Please review the logs."
             },
-            "current_step": state.get("current_step", 0) + 1
+            "current_step": getattr(state, "current_step", 0) + 1
         }
