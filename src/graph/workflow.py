@@ -23,8 +23,19 @@ def create_rankpilot_workflow():
     # --- Synthesis Node (Fan-in) ---
     workflow.add_node("executive_writer", executive_writer_node) # The Voice
 
-    # 2. Define Entry Point
-    workflow.set_entry_point("analyze_structure")
+    # 2. Define Entry Point (Conditional to allow resuming)
+    def entry_router(state: RankPilotState):
+        if state.current_step > 0:
+            return "interrogate"
+        return "analyze_structure"
+
+    workflow.set_conditional_entry_point(
+        entry_router,
+        {
+            "analyze_structure": "analyze_structure",
+            "interrogate": "interrogate"
+        }
+    )
 
     # 3. Define Linear Edges
     workflow.add_edge("analyze_structure", "interrogate")
@@ -33,14 +44,15 @@ def create_rankpilot_workflow():
     def route_interrogation(state: RankPilotState):
         if state.next_node == "generate_snapshot":
             return "generate_snapshot"
-        return "interrogate" # This creates the loop for the 6 steps
+        # Return END to interrupt the flow and send state back to Laravel
+        return END
 
     workflow.add_conditional_edges(
         "interrogate",
         route_interrogation,
         {
             "generate_snapshot": "generate_snapshot",
-            "interrogate": "interrogate"
+            END: END
         }
     )
 
