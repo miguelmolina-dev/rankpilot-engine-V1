@@ -27,7 +27,7 @@ def create_rankpilot_workflow():
     # From Interrogation, we have a "Conditional Gate"
     # This checks the 'next_node' variable set by the Interrogator Agent
     def route_interrogation(state: RankPilotState):
-        if state.get("next_node") == "generate_snapshot":
+        if state.next_node == "generate_snapshot":
             return "generate_snapshot"
         return "interrogate" # This creates the loop for the 6 steps
 
