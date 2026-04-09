@@ -29,14 +29,14 @@ class NewAnswer(BaseModel):
 
 class MetaData(BaseModel):
     file_base64: str = ""
-    directory: Optional[str]
-    current_band: Optional[str]
-    target_band: Optional[str]
-    region: str                 # e.g., "Latin America", "Europe"
-    practice_area: str          # e.g., "Tax", "Banking & Finance"
-    location: str             # e.g., "São Paulo", "New York"   
-    submission_deadline: Optional[str]    # Format: YYYY-MM-DD
-    firm_name: str
+    directory: Optional[str] = None
+    current_band: Optional[str] = None
+    target_band: Optional[str] = None
+    region: str = ""                # e.g., "Latin America", "Europe"
+    practice_area: str = ""         # e.g., "Tax", "Banking & Finance"
+    location: str = ""            # e.g., "São Paulo", "New York"
+    submission_deadline: Optional[str] = None   # Format: YYYY-MM-DD
+    firm_name: str = ""
 
 class Milestone(BaseModel):
     """Individual task in the strategic roadmap."""
@@ -58,8 +58,8 @@ class ExecutiveSummary(BaseModel):
 class RankPilotState(BaseModel):
     # --- Metadata & Input ---
     submission_id: str
-    metadata: Optional[MetaData]
-    raw_text: str  
+    metadata: Optional[MetaData] = None
+    raw_text: str = ""
     
     # --- Interrogation History ---
     new_answer: Optional[NewAnswer] = None
@@ -73,12 +73,12 @@ class RankPilotState(BaseModel):
     positioning_tier: Optional[PositioningTier] = None
     
     # --- Results Fields ---
-    blind_spots: List[BlindSpot]
-    competitive_advantage: List[str]
-    evolution_path: list[Milestone]
+    blind_spots: List[BlindSpot] = Field(default_factory=list)
+    competitive_advantage: List[str] = Field(default_factory=list)
+    evolution_path: list[Milestone] = Field(default_factory=list)
 
     #Executive Summary
-    executive_summary: Optional[ExecutiveSummary]
+    executive_summary: Optional[ExecutiveSummary] = None
     
     # --- Flow Control ---
     next_node: str = ""
