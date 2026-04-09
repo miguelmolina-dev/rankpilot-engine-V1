@@ -25,9 +25,8 @@ def interrogator_node(state: RankPilotState):
             "history": history
         }
 
-    # 3. Processing: Use 'text' from ingestion to avoid KeyError
-    # Laravel Initial JSON provides text inside 'file_content'
-    raw_text = state.file_content.get("text", "") if state.file_content else ""
+    # 3. Processing: Extract text from state to pass to LLM
+    raw_text = state.raw_text if state.raw_text else ""
     
     input_data = {
         "raw_text": raw_text,
