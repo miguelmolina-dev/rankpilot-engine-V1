@@ -1,6 +1,6 @@
 from src.graph.state import RankPilotState
 from src.chains.extractor_chain import extraction_chain
-from src.utils.pdf_loader import extract_text_from_pdf, clean_extracted_text
+from src.utils.document_loader import extract_text_from_base64, clean_extracted_text
 
 def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
     """
@@ -11,11 +11,11 @@ def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
     
     # 1. Get the text (This only happens in the very first hit)
     if not state.raw_text:
-        if not state.metadata or not state.metadata.file_path:
-            return {"status": "error", "message": "No file_path in metadata for structural analysis."}
-        # We assume the file_path is passed in metadata by Laravel
-        file_path = state.metadata.file_path
-        raw_data = extract_text_from_pdf(file_path)
+        if not state.metadata or not state.metadata.file_base64:
+            return {"status": "error", "message": "No file_base64 in metadata for structural analysis."}
+        # We assume the file_base64 is passed in metadata by Laravel
+        file_base64 = state.metadata.file_base64
+        raw_data = extract_text_from_base64(file_base64)
         state.raw_text = clean_extracted_text(raw_data)
         print("--- DEBUG: raw_text extracted ---")
 
@@ -27,14 +27,12 @@ def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
         analysis_result = analysis_result_obj.dict() # Convert object to dictionary
         print(f"--- DEBUG: LLM Response Received: {analysis_result.get('practice_model')} ---")
 
-        # 1. Get the current metadata from state
-        updated_metadata = state.get("metadata", {}).copy()
-
-        # 2. Inject the dynamically extracted firm_name from the LLM result
+        # 1. Inject the dynamically extracted firm_name from the LLM result
         # This ensures metadata is enriched with the firm name found in the PDF
-        updated_metadata["firm_name"] = analysis_result.get("firm_name", "Unknown Firm")
+        if state.metadata:
+            state.metadata.firm_name = analysis_result.get("firm_name", "Unknown Firm")
 
-        # 3. Update the State
+        # 2. Update the State
         # Note: We don't fill 'positioning_tier' yet, just the core model and gaps
         return {
             # We must include the existing state keys
