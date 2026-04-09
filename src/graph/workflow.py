@@ -31,14 +31,10 @@ def create_rankpilot_workflow():
 
     # 4. Define Interrogation Loop (Conditional)
     def route_interrogation(state: RankPilotState):
-        if state.get("next_node") == "generate_snapshot":
-            # Returning a list triggers parallel execution (fan-out)
-            return ["generate_snapshot"] 
-        
-        # Even for a single node, you can return a list or just the string
-        return "interrogate"
+        if state.next_node == "generate_snapshot":
+            return "generate_snapshot"
+        return "interrogate" # This creates the loop for the 6 steps
 
-    # 2. Update the mapping so values are single strings (node names)
     workflow.add_conditional_edges(
         "interrogate",
         route_interrogation,

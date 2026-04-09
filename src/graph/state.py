@@ -3,21 +3,26 @@ from langgraph.graph.message import add_messages
 from operator import add
 
 # Matches CorePositioning in snapshot_chain.py
-class PositioningCore(TypedDict):
-    practice_model: str  
-    practice_definition: str  
-    confidence_score: float
-    signals: List[str]
+class PositioningCore(BaseModel):
+    practice_model: str = ""
+    practice_definition: str = ""
+    confidence_score: float = 0.0
+    signals: List[str] = Field(default_factory=list)
 
-class PositioningTier(TypedDict):
-    label: str
-    explanation: str
+class PositioningTier(BaseModel):
+    label: str = ""
+    explanation: str = ""
 
-class BlindSpot(TypedDict):
-    issue: str
-    description: str
+class BlindSpot(BaseModel):
+    issue: str = ""
+    description: str = ""
 
-class NewAnswer(TypedDict):
+class EvolutionAction(BaseModel):
+    action: str
+    impact: str
+    instruction: str
+
+class NewAnswer(BaseModel):
     question_text: str
     answer: str
 
@@ -56,15 +61,15 @@ class RankPilotState(TypedDict):
     raw_text: Optional[str]
     
     # --- Interrogation History ---
-    new_answer: Optional[NewAnswer]
-    history: List[str] 
-    current_step: int
+    new_answer: Optional[NewAnswer] = None
+    history: List[str] = Field(default_factory=list)
+    current_step: int = 0
 
-    gaps: Optional[List[str]]  # This can be a simple string for now, or a more complex structure later
+    gaps: Optional[List[str]] = None
     
     # --- Analysis Results ---
-    positioning_core: Optional[PositioningCore]
-    positioning_tier: Optional[PositioningTier]
+    positioning_core: Optional[PositioningCore] = None
+    positioning_tier: Optional[PositioningTier] = None
     
     # --- Results Fields ---
     blind_spots: List[BlindSpot]
@@ -75,4 +80,6 @@ class RankPilotState(TypedDict):
     executive_summary: Optional[ExecutiveSummary]
     
     # --- Flow Control ---
-    next_node: str
+    next_node: str = ""
+
+    model_config = {"extra": "allow"}

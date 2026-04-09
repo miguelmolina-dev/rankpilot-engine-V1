@@ -10,20 +10,20 @@ def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
     print("--- [NODE] Starting Structural Analysis ---")
     
     # 1. Get the text (This only happens in the very first hit)
-    if not state.get("raw_text"):
-        if not state.get("metadata", {}).get("file_path"):
+    if not state.raw_text:
+        if not state.metadata or not state.metadata.file_path:
             return {"status": "error", "message": "No file_path in metadata for structural analysis."}
         # We assume the file_path is passed in metadata by Laravel
-        file_path = state["metadata"].get("file_path")
+        file_path = state.metadata.file_path
         raw_data = extract_text_from_pdf(file_path)
-        state["raw_text"] = clean_extracted_text(raw_data)
+        state.raw_text = clean_extracted_text(raw_data)
         print("--- DEBUG: raw_text extracted ---")
 
     try: 
         print("--- DEBUG: Invoking Extraction Chain ---")
         # 2. Call the LCEL Chain (The LLM logic)
         # We pass the raw text to the chain to get the first "Diagnosis"
-        analysis_result_obj = extraction_chain.invoke({"text": state["raw_text"]})
+        analysis_result_obj = extraction_chain.invoke({"text": state.raw_text})
         analysis_result = analysis_result_obj.dict() # Convert object to dictionary
         print(f"--- DEBUG: LLM Response Received: {analysis_result.get('practice_model')} ---")
 
@@ -38,10 +38,10 @@ def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
         # Note: We don't fill 'positioning_tier' yet, just the core model and gaps
         return {
             # We must include the existing state keys
-            "submission_id": state.get("submission_id"),
-            "metadata": updated_metadata,
-            "raw_text": state.get("raw_text"),
-            "history": state.get("history", []),
+            "submission_id": state.submission_id,
+            "metadata": state.metadata,
+            "raw_text": state.raw_text,
+            "history": state.history,
             "gaps": analysis_result.get("gaps", []), # Add the identified gaps to the state
             # Fill the new standardized PositioningCore
             "positioning_core": {
