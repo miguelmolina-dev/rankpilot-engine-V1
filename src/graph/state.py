@@ -1,6 +1,7 @@
-from typing import Annotated, TypedDict, List, Dict, Optional
-from langgraph.graph.message import add_messages
-from operator import add
+from typing import Annotated, List, Dict, Optional
+from pydantic import BaseModel, Field
+
+print("State module loaded successfully.")
 
 # Matches CorePositioning in snapshot_chain.py
 class PositioningCore(BaseModel):
@@ -26,7 +27,7 @@ class NewAnswer(BaseModel):
     question_text: str
     answer: str
 
-class MetaData(TypedDict):
+class MetaData(BaseModel):
     file_base64: str = ""
     directory: Optional[str]
     current_band: Optional[str]
@@ -37,7 +38,7 @@ class MetaData(TypedDict):
     submission_deadline: Optional[str]    # Format: YYYY-MM-DD
     firm_name: str
 
-class Milestone(TypedDict):
+class Milestone(BaseModel):
     """Individual task in the strategic roadmap."""
     category: str           # "Strategic Narrative", "Quantitative Density", etc.
     action_title: str       # Short title for the Laravel UI
@@ -46,7 +47,7 @@ class Milestone(TypedDict):
     priority_level: int     # 1 (Critical) to 5 (Low)
     days_before_deadline: int # Calculated days remaining until submission
 
-class ExecutiveSummary(TypedDict):
+class ExecutiveSummary(BaseModel):
     """Data for the Dynamic Dashboard and the Audit Letter."""
     overall_score: int          # 0-100 for the progress ring/chart
     risk_level: str             # "Critical", "Moderate", "Low"
@@ -54,11 +55,11 @@ class ExecutiveSummary(TypedDict):
     top_differentiators: List[str] # Strongest points found in the PDF
     audit_letter_markdown: str  # Full body of the professional letter
 
-class RankPilotState(TypedDict):
+class RankPilotState(BaseModel):
     # --- Metadata & Input ---
     submission_id: str
     metadata: Optional[MetaData]
-    raw_text: Optional[str]
+    raw_text: str  
     
     # --- Interrogation History ---
     new_answer: Optional[NewAnswer] = None
