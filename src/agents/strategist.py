@@ -86,7 +86,7 @@ def strategist_agent(state: RankPilotState) -> Dict[str, Any]:
 
     # Return the updates for the state
     return {
-        "evolution_path": [m.dict() for m in response.evolution_path],
+        "evolution_path": [m.model_dump() for m in response.evolution_path],
         "executive_summary": {
             "overall_score": response.overall_score,
             "risk_level": response.risk_level,
