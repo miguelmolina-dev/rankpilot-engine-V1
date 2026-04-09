@@ -1,7 +1,7 @@
 from src.graph.state import RankPilotState
 from src.chains.extractor_chain import extraction_chain
 from src.utils.document_loader import extract_text_from_base64, clean_extracted_text
-
+from src.graph.state import RankPilotState, PositioningCore, MetaData
 def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
     """
     Node 1: Parses the PDF (if not already parsed) and identifies 
@@ -23,34 +23,32 @@ def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
         print("--- DEBUG: Invoking Extraction Chain ---")
         # 2. Call the LCEL Chain (The LLM logic)
         # We pass the raw text to the chain to get the first "Diagnosis"
-        analysis_result_obj = extraction_chain.invoke({"text": state.raw_text})
-        analysis_result = analysis_result_obj.dict() # Convert object to dictionary
-        print(f"--- DEBUG: LLM Response Received: {analysis_result.get('practice_model')} ---")
+        analysis_result = extraction_chain.invoke({"text": state.raw_text})
+
+        print(f"--- DEBUG: LLM Response Received: {analysis_result.firm_name} ---")
 
         # 1. Inject the dynamically extracted firm_name from the LLM result
         # This ensures metadata is enriched with the firm name found in the PDF
         if state.metadata:
-            state.metadata.firm_name = analysis_result.get("firm_name", "Unknown Firm")
+            state.metadata.firm_name = analysis_result.firm_name
+
+        core_data = PositioningCore(
+            practice_model=analysis_result.practice_model,
+            practice_definition=analysis_result.definition,
+            confidence_score=analysis_result.confidence_score,
+            signals=analysis_result.initial_signals
+        )
 
         # 2. Update the State
         # Note: We don't fill 'positioning_tier' yet, just the core model and gaps
         return {
-            # We must include the existing state keys
-            "submission_id": state.submission_id,
             "metadata": state.metadata,
             "raw_text": state.raw_text,
             "history": state.history,
-            "gaps": analysis_result.get("gaps", []), # Add the identified gaps to the state
+            "gaps": analysis_result.gaps, # Add the identified gaps to the state
             # Fill the new standardized PositioningCore
-            "positioning_core": {
-                "practice_model": analysis_result.get("practice_model"),
-                "practice_definition": analysis_result.get("practice_definition") or analysis_result.get("definition"),
-                "confidence_score": analysis_result.get("confidence_score", 0.0),
-                "signals": analysis_result.get("initial_signals", [])
-            },
-            
+            "positioning_core": core_data,
             "current_step": 1,
-            "total_steps_estimated": 6,
             "next_node": "interrogate" # This MUST match workflow.add_node("interrogator", ...)
         }
     except Exception as e:

@@ -1,5 +1,4 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import List
@@ -20,17 +19,36 @@ parser = PydanticOutputParser(pydantic_object=ExtractionResult)
 # 3. Create the Prompt
 extraction_prompt = ChatPromptTemplate.from_template(
     """
-    You are a Senior Legal Directory Researcher for Chambers & Partners. 
-    Analyze the following legal submission text and extract the core positioning data.
-    
-    TEXT FROM SUBMISSION:
+    ### ROLE
+    You are an Elite Legal Strategy Consultant and Lead Researcher for Chambers & Partners. You possess a "market-microscope" ability to distinguish between generic legal work and Top-Tier (Band 1) sophistication.
+
+    ### CONTEXT
+    The following text is a legal directory submission. Your goal is to dissect this text to find the firm's competitive edge and, more importantly, identify the "credibility deficit" preventing them from absolute market dominance.
+
+    ### EXTRACTION TASK
+    Analyze the [SUBMISSION TEXT] and extract data based on these specific criteria:
+
+    1. **Practice Model**: Do not use generic labels (e.g., "Corporate"). Instead, identify the specific "Hybrid Niche" or "Market Focus" presented (e.g., "Cross-Border Tech M&A for Emerging Markets").
+    2. **Definition**: Write a high-level, one-sentence technical definition that describes the firm’s unique methodology or sector-specific specialization.
+    3. **Initial Signals (Exactly 3)**: Extract evidence of "Market Gravity." Look for:
+        - High-stakes value (USD amounts).
+        - Novelty (First-of-its-kind litigation or regulatory firsts).
+        - Multi-jurisdictional complexity.
+    4. **Gaps (4-6 Items)**: Be ruthless. Identify what is missing based on Chambers' "Band 1" standards:
+        - Lack of client feedback snippets? 
+        - Absence of market-leading individual rankings?
+        - Insufficient geographical breadth? 
+        - Weakness in "Bet-the-Company" case studies?
+    5. **Firm Name**: Exact legal entity name as it appears.
+
+    ### CONSTRAINTS
+    - If the text is insufficient, provide a lower `confidence_score`.
+    - Every "Gap" must be a structural weakness of the *submission*, not a general legal industry problem.
+    - Professional, objective, and analytical tone.
+
+    ### SUBMISSION TEXT:
     {text}
-    
-    INSTRUCTIONS:
-    - Identify the unique 'Practice Model' (e.g., instead of just 'Banking', use 'Regulatory-Heavy FinTech').
-    - Find 3 clear signals of complexity or prestige.
-    - Identify what is missing for a Top-Tier ranking.
-    
+
     {format_instructions}
     """
 )
