@@ -19,7 +19,7 @@ def executive_writer_node(state: RankPilotState) -> Dict[str, Any]:
 
     # We might get a list of Milestone objects or a list of dictionaries if state serialization hasn't caught up
     formatted_path = "\n".join([
-        f"STEP {i+1}: {getattr(step, 'action_title', step.get('action_title', '')) if hasattr(step, 'action_title') else step.get('action_title', '')} ({getattr(step, 'category', step.get('category', '')) if hasattr(step, 'category') else step.get('category', '')})\nWHY: {getattr(step, 'why_it_matters', step.get('why_it_matters', '')) if hasattr(step, 'why_it_matters') else step.get('why_it_matters', '')}\nHOW: {getattr(step, 'technical_instruction', step.get('technical_instruction', '')) if hasattr(step, 'technical_instruction') else step.get('technical_instruction', '')}\n"
+        f"STEP {i+1}: {getattr(step, 'action_title', step.get('action_title', '')) if isinstance(step, dict) else getattr(step, 'action_title', '')} ({getattr(step, 'category', step.get('category', '')) if isinstance(step, dict) else getattr(step, 'category', '')})\nWHY: {getattr(step, 'why_it_matters', step.get('why_it_matters', '')) if isinstance(step, dict) else getattr(step, 'why_it_matters', '')}\nHOW: {getattr(step, 'technical_instruction', step.get('technical_instruction', '')) if isinstance(step, dict) else getattr(step, 'technical_instruction', '')}\n"
         for i, step in enumerate(evolution_path)
     ]) if evolution_path else "No roadmap generated."
     
