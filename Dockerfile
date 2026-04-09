@@ -16,9 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy your source code (including your agents and state.py)
 COPY . .
 
-# Create the mount point for the shared data
-RUN mkdir -p /app/shared_data
-
 # Expose the port your API runs on
 EXPOSE 8000
 

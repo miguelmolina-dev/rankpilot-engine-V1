@@ -22,14 +22,14 @@ class NewAnswer(TypedDict):
     answer: str
 
 class MetaData(TypedDict):
-    file_path: str
+    file_base64: str = ""
     directory: Optional[str]
     current_band: Optional[str]
     target_band: Optional[str]
     region: str                 # e.g., "Latin America", "Europe"
     practice_area: str          # e.g., "Tax", "Banking & Finance"
     location: str             # e.g., "São Paulo", "New York"   
-    submission_deadline: str    # Format: YYYY-MM-DD
+    submission_deadline: Optional[str]    # Format: YYYY-MM-DD
     firm_name: str
 
 class Milestone(TypedDict):
@@ -53,7 +53,7 @@ class RankPilotState(TypedDict):
     # --- Metadata & Input ---
     submission_id: str
     metadata: Optional[MetaData]
-    raw_text: str  
+    raw_text: Optional[str]
     
     # --- Interrogation History ---
     new_answer: Optional[NewAnswer]
