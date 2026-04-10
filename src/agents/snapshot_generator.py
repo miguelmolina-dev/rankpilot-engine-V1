@@ -3,11 +3,17 @@ from src.chains.snapshot_chain import snapshot_chain
 from src.utils.llm_manager import get_llm
 from src.graph.state import RankPilotState
 
+from src.graph.state import PositioningTier
+
 def snapshot_generator_node(state: RankPilotState):
     print("--- [NODE] Generating Final Snapshot ---")
     
+    # 1. Ingestión Segura (Evitamos AttributeError si el core es None)
+    pos_core = state.positioning_core
+    
     try:
-        # ... invoke logic remains the same ...
+        # 2. Invocación de la cadena
+        # Usamos los datos crudos y el historial para la síntesis final
         result = snapshot_chain.invoke({
             "raw_text": state.raw_text,
             "history": state.history,
@@ -16,7 +22,8 @@ def snapshot_generator_node(state: RankPilotState):
             "gaps": state.gaps if state.gaps else "No specific gaps identified yet."
         })
         
-        # Flatten the result so it matches your RankPilotState keys
+        # 3. Mapeo al Estado
+        # We can just return the pydantic models since the state is a BaseModel now
         return {
             "positioning_core": {
                 "practice_model": result.positioning_core.practice_model.label,
@@ -28,9 +35,14 @@ def snapshot_generator_node(state: RankPilotState):
             "blind_spots": [bs.model_dump() for bs in result.blind_spots],
             "competitive_advantage": result.competitive_advantage,
             "status": "completed",
-            "next_node": "end" # Update this to tell the test the flow finished
+            "next_node": "__end__" # En LangGraph, esto indica el final absoluto
         }
+
     except Exception as e:
-        print(f"!!! Error en Snapshot: {e}")
-        # Retornamos algo mínimo para evitar el AttributeError: 'NoneType' en el test
-        return {"status": "error", "final_report": {}, "positioning_tier": {"label": "Error"}}
+        print(f"!!! Error Crítico en Generación de Snapshot: {e}")
+        # Retorno de seguridad para que Laravel no reciba un vacío
+        return {
+            "status": "error",
+            "next_node": "__end__",
+            "positioning_tier": PositioningTier(label="Error", explanation=str(e))
+        }

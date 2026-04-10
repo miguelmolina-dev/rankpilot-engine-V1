@@ -4,8 +4,7 @@ from src.utils.document_loader import extract_text_from_base64, clean_extracted_
 from src.graph.state import RankPilotState, PositioningCore, MetaData
 def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
     """
-    Node 1: Parses the PDF (if not already parsed) and identifies 
-    the initial structural gaps and practice model.
+    Node 1: Parses the document and identifies initial structural gaps.
     """
     print("--- [NODE] Starting Structural Analysis ---")
     
@@ -52,5 +51,20 @@ def structural_analyzer_node(state: RankPilotState) -> RankPilotState:
             "next_node": "interrogate" # This MUST match workflow.add_node("interrogator", ...)
         }
     except Exception as e:
-        print(f"Error in Structural Analysis: {e}")
-        return {"status": "error", "message": str(e)}
+        print(f"!!! Error in Extraction Chain: {e}")
+        return {"next_node": "end", "gaps": [f"Analysis Error: {e}"]}
+
+    # 3. Retorno de Actualizaciones
+    # En LangGraph, solo devolvemos lo que cambia. El resto se mantiene.
+    return {
+        "raw_text": raw_text,
+        "gaps": analysis_result.get("gaps", []),
+        "positioning_core": PositioningCore(
+            practice_model=analysis_result.get("practice_model", ""),
+            practice_definition=analysis_result.get("practice_definition") or analysis_result.get("definition", ""),
+            confidence_score=analysis_result.get("confidence_score", 0.0),
+            signals=analysis_result.get("initial_signals", [])
+        ),
+        "current_step": 1,
+        "next_node": "interrogate" 
+    }

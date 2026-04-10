@@ -1,6 +1,8 @@
 from src.graph.state import RankPilotState
 from src.chains.question_chain import question_chain
 
+from src.graph.state import NewAnswer
+
 def interrogator_node(state: RankPilotState):
     print("--- [NODE] Starting Interrogation Step ---")
     # 1. Ingestion: Process incoming Laravel JSON

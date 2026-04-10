@@ -12,7 +12,6 @@ ENV/
 .venv/
 
 # Project specific
-shared_data/
 inputs/
 tests/
 *.pdf
