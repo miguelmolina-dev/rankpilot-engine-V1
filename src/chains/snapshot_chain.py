@@ -24,16 +24,9 @@ class CorePositioning(BaseModel):
     signals: List[str] = Field(description="Exactly 3 specific evidence-backed signals.")
 
 class FinalSnapshot(BaseModel):
-    """
-    Ensure the top-level keys match what the Snapshot Node expects.
-    """
     practice_model: PracticeModel = Field(description="The formal name and technical definition.")
     positioning_tier: PositioningTier = Field(description="Elite, Consolidated, or Market Member.")
-    confidence_score: float = Field(description="Value between 0.0 and 1.0.")
-    positioning_core: CorePositioning = Field(description="The full technical audit data for the Snapshot Node.")
-    signals: List[str] = Field(description="Exactly 3 specific evidence-backed signals.")
     blind_spots: List[BlindSpot] = Field(description="Exactly 4 high-stakes technical gaps.")
-    # Fix the typo: 'competitive_advantages' (plural) to match your state if needed
     competitive_advantage: List[str] = Field(description="Top 2 'Elite' signals.")
 
 parser = PydanticOutputParser(pydantic_object=FinalSnapshot)

@@ -35,7 +35,7 @@ def run_interactive_session(filepath, url="http://localhost:8001/process"):
             # Send back the updated state
             print(f"\nSending answer back to {url}...")
             try:
-                with httpx.Client(timeout=120.0) as client:
+                with httpx.Client(timeout=500.0) as client:
                     response = client.post(url, json=state)
 
                 print(f"Status Code: {response.status_code}")
