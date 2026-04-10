@@ -17,11 +17,6 @@ class BlindSpot(BaseModel):
     issue: str = Field(description="A short title for the identified gap.")
     description: str = Field(description="A detailed explanation of why this is a risk.")
 
-class EvolutionAction(BaseModel):
-    action: str = Field(description="The title of the strategic move.")
-    impact: str = Field(description="High, Medium, or Low.")
-    instruction: str = Field(description="Practical 'how-to' for implementation.")
-
 class CorePositioning(BaseModel):
     # Antes era: practice_model: str
     practice_model: PracticeModel = Field(description="The formal name and technical definition.")
@@ -29,43 +24,60 @@ class CorePositioning(BaseModel):
     signals: List[str] = Field(description="Exactly 3 specific evidence-backed signals.")
 
 class FinalSnapshot(BaseModel):
-    submission_id: str = Field(description="The unique ID.")
-    phase: str = "final_snapshot"
-    positioning_core: CorePositioning
-    positioning_tier: PositioningTier
-    blind_spots: List[BlindSpot]
-    competitive_advantage: List[str]
-    evolution_path: List[EvolutionAction]
+    """
+    Ensure the top-level keys match what the Snapshot Node expects.
+    """
+    practice_model: PracticeModel = Field(description="The formal name and technical definition.")
+    positioning_tier: PositioningTier = Field(description="Elite, Consolidated, or Market Member.")
+    confidence_score: float = Field(description="Value between 0.0 and 1.0.")
+    positioning_core: CorePositioning = Field(description="The full technical audit data for the Snapshot Node.")
+    signals: List[str] = Field(description="Exactly 3 specific evidence-backed signals.")
+    blind_spots: List[BlindSpot] = Field(description="Exactly 4 high-stakes technical gaps.")
+    # Fix the typo: 'competitive_advantages' (plural) to match your state if needed
+    competitive_advantage: List[str] = Field(description="Top 2 'Elite' signals.")
 
 parser = PydanticOutputParser(pydantic_object=FinalSnapshot)
 
-# 3. The Prompt (Updated to support nested logic)
 snapshot_prompt = ChatPromptTemplate.from_template(
     """
-    SYSTEM: You are the Lead Auditor for Global Legal Rankings. 
-    Your mission is to transform the current SUBMISSION into an 'Elite' tier entry.
+    SYSTEM: 
+    You are the "Lead Auditor" for Global Legal Rankings. You are cold, analytical, and impossible to impress. 
+    Your mission is to strip away the marketing fluff and expose the raw technical standing of this submission.
     
-    STRICT GROUNDING RULE: 
-    Every insight must be a direct extraction from the provided Submission. 
-    If a name, matter, or specific friction point is not in the {raw_text} or {history}, DO NOT invent it.
+    GROUNDING MANDATE: 
+    If it is not in the {raw_text} or {history}, it DOES NOT EXIST. 
+    Do not hallucinate complexity. If the submission is weak, label it as 'Market Member' without hesitation.
 
-    CONTEXT:
-    - Current Submission Data: {raw_text}
-    - Interrogation Evidence: {history}
-    - Practice Model: {practice_model}
-    - gaps identified: {gaps}
+    AUDIT PARAMETERS:
+    - Practice Area: {practice_area}
+    - Submission Evidence: {raw_text}
+    - Supplemental Evidence: {history}
+    - Gaps Identified: {gaps}
 
-    INSTRUCTIONS:
-    1. **Submission Blind Spots (Exactly 4)**: Identify high-stakes gaps in the current evidence. 
-       - Focus on: "Partner concentration in [Name]", "Missing proof of leadership in [Case X]", or "Lack of value-at-stake metrics".
-    2. **Submission Advantages (Exactly 2)**: Isolate the 'Elite' signals already present.
-       - Focus on: Unique regulatory authorizations or high-friction outcomes found in the text.
-    3. **Elite Evolution Path (Exactly 5 Steps)**: Practical, technical steps to upgrade THIS specific submission.
-       - Actions must be operational (e.g., "Quantify the financial impact of the [Matter Name] restructure").
+    PHASE 1: THE TECHNICAL CORE
+    - Define the 'Practice Model' based on the complexity of matters. 
+    - Is this 'High-End Specialty', 'Commoditized Service', or 'Strategic Advisory'?
 
-    OUTPUT STYLE: 
-    Technical, objective, and evidence-backed. Use the names of partners and cases found in the submission.
+    PHASE 2: THE TIER VERDICT
+    - Assign a Tier: [Elite / Consolidated / Market Member].
+    - JUSTIFICATION: Compare the evidence against Band 1 standards for {practice_area}. 
+    - If there is a 'Key Man Risk' (all cases lead by one person), downgrade the tier.
 
+    PHASE 3: THE INVISIBLE RISKS (4 Blind Spots)
+    Identify exactly 4 technical gaps that an investigator would use to reject a Band 1 ranking.
+    Focus on: 
+    1. Lack of Quantitative Depth (Missing $$$ values).
+    2. Missing Market-Leading Friction (Standard vs. Complex cases).
+    3. Low Peer Recognition Signals.
+    4. Weak Narrative Cohesion.
+
+    PHASE 4: THE WEAPONS (2 Competitive Advantages)
+    Identify exactly 2 reasons why this firm is a threat to the market. 
+    Look for: Unique regulatory access, specific landmark precedents, or niche dominance.
+
+    TONE: 
+    Surgical, objective, and authoritative. Use the exact names of Partners and Matters to anchor your findings.
+    
     {format_instructions}
     """
 )

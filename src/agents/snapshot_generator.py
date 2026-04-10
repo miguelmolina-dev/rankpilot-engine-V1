@@ -15,21 +15,25 @@ def snapshot_generator_node(state: RankPilotState):
         # 2. Invocación de la cadena
         # Usamos los datos crudos y el historial para la síntesis final
         result = snapshot_chain.invoke({
-            "raw_text": state.raw_text or "",
-            "history": state.history or [],
-            "practice_model": pos_core.practice_model if pos_core else "Unknown Model",
-            "submission_id": state.submission_id or "Default-ID",
-            "gaps": state.gaps or "No specific gaps identified yet."
+            "raw_text": state.raw_text,
+            "history": state.history,
+            "practice_model": state.positioning_core.practice_model if state.positioning_core else "Unknown Model",
+            "submission_id": state.submission_id,
+            "gaps": state.gaps if state.gaps else "No specific gaps identified yet."
         })
         
         # 3. Mapeo al Estado
         # We can just return the pydantic models since the state is a BaseModel now
         return {
-            "positioning_core": result.positioning_core,
-            "positioning_tier": result.positioning_tier,
-            "blind_spots": result.blind_spots,
+            "positioning_core": {
+                "practice_model": result.positioning_core.practice_model.label,
+                "practice_definition": result.positioning_core.practice_model.definition,
+                "confidence_score": result.positioning_core.confidence_score,
+                "signals": result.positioning_core.signals
+            },
+            "positioning_tier": result.positioning_tier.model_dump(),
+            "blind_spots": [bs.model_dump() for bs in result.blind_spots],
             "competitive_advantage": result.competitive_advantage,
-            "evolution_path": result.evolution_path,
             "status": "completed",
             "next_node": "__end__" # En LangGraph, esto indica el final absoluto
         }

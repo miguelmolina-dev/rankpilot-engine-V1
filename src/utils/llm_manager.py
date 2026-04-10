@@ -25,7 +25,7 @@ def get_llm(temperature=0):
     
     # Default to Direct OpenAI (Production)
     return ChatOpenAI(
-        model="gpt-4o",
+        model="gpt-5.4-mini",
         api_key=os.getenv("OPENAI_API_KEY"),
         temperature=temperature
     )

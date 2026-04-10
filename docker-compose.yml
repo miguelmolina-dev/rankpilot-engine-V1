@@ -14,4 +14,4 @@ services:
 
 networks:
   rankpilot_network:
-    external: true  # This allows you to join the Laravel network
+    external: true  # This allows you to join the Laravel networkk

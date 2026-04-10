@@ -5,7 +5,7 @@ from src.graph.state import RankPilotRequest
 app = FastAPI(title="RankPilot Engine")
 
 @app.post("/process")
-async def process_submission(request: RankPilotRequest):
+async def process_submission(request: RankPilotState):
     try:
         # Invocamos el grafo - Since RankPilotState is now a BaseModel, we can pass it directly
         final_state = app_workflow.invoke(request)
