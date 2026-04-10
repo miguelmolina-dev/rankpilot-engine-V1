@@ -97,15 +97,28 @@ def test_full_pydantic_workflow(monkeypatch):
     }
     result2 = app_workflow.invoke(state2)
 
-    # 3. Repeat to pass the current_step >= 3 logic in interrogator
-    state3 = RankPilotState(**result2)
-    state3.new_answer = {
-        "question_text": "Next question?",
-        "answer": "My second answer"
-    }
-    result3 = app_workflow.invoke(state3)
+    # 3. Repeat to pass the current_step >= 6 logic in interrogator
+    # Note: interrogator_node checks for current_step >= 6 before finishing
+    # We started at 0. Structural analyzer bumped to 1.
+    # result1 bumped to 2. result2 bumped to 3.
+    # We need to simulate answering up to step 6.
+
+    current_state_dict = result2
+
+    for _ in range(4):
+        state = RankPilotState(**current_state_dict)
+        state.new_answer = {
+            "question_text": "Next question?",
+            "answer": "My answer"
+        }
+        current_state_dict = app_workflow.invoke(state)
 
     # Now it should go to generate_snapshot and the rest
 
-    assert "executive_summary" in result3
-    assert result3["executive_summary"]["overall_score"] == 85
+    assert "executive_summary" in current_state_dict
+    # executive_summary is an object (or dict), so let's check correctly
+    exec_sum = current_state_dict["executive_summary"]
+    if hasattr(exec_sum, "overall_score"):
+        assert exec_sum.overall_score == 85
+    else:
+        assert exec_sum["overall_score"] == 85

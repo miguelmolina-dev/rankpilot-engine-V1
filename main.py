@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from src.graph.workflow import app_workflow
-from src.graph.state import RankPilotRequest
+from src.graph.state import RankPilotState
 
 app = FastAPI(title="RankPilot Engine")
 
